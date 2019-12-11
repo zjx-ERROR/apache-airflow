@@ -74,5 +74,13 @@ airflow flower -D
 
 将以上所有守护进程运行在同一台机器上即可完成airflow的单节点部署，架构如下图所示
 
-![airflow单节点部署](img/12989993-e0058864f780292f.png)
+![airflow单节点部署](img/12989993-e0058864f780292f.png "airflow单节点部署")
+
+## airflow多节点（集群）部署
+
+在稳定性要求较高的场景，如金融交易系统中，一般采用集群、高可用的方式来部署。Apache Airflow同样支持集群、高可用部署，airflow的守护进程可分布在多台机器上运行，架构如下图所示：
+
+![airflow集群部署](img/12989993-d6181c7d30c4afd2.png "airflow集群部署")
+
+
 
