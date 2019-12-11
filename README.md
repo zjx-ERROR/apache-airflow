@@ -4,7 +4,6 @@
 
 airflow系统在运行时有许多守护进程，它们提供了airflow的全部功能。守护进程包括WEB服务器：webserver、调度程序：scheduler、执行单元：worker、消息队列监控工具：Flower等。
 
----
 
 ###webserver
 
@@ -62,5 +61,3 @@ airflow flower -D
 默认的端口为5555，可以在浏览器通过地址"http://localhost:5555"来访问flower，对celery消息队列进行监控。
 
 
-
----
