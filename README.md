@@ -74,5 +74,5 @@ airflow flower -D
 
 将以上所有守护进程运行在同一台机器上即可完成airflow的单节点部署，架构如下图所示
 
-！[airflow单节点部署](img/12989993-e0058864f780292f.png "airflow单节点部署")
+![airflow单节点部署](img/12989993-e0058864f780292f.png)
 
