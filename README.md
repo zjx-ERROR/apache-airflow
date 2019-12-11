@@ -1,11 +1,11 @@
 # apache-airflow
 
-##airflow的守护进程
+## airflow的守护进程
 
 airflow系统在运行时有许多守护进程，它们提供了airflow的全部功能。守护进程包括WEB服务器：webserver、调度程序：scheduler、执行单元：worker、消息队列监控工具：Flower等。
 
 
-###webserver
+### webserver
 
 webserver是一个守护进程，它接受HTTP请求、允许通过其它WEB应用程序与airflow进行交互，webserver提供以下功能：
 
@@ -26,7 +26,7 @@ workers = 4 # 表示开启4个gunicoen worker处理web请求
 airflow webserver -D
 ```
 
-###scheduler
+### scheduler
 
 scheduler是一个守护进程，它周期性轮询任务的调度计划，以确定是否触发任务执行。
 
@@ -36,7 +36,7 @@ scheduler是一个守护进程，它周期性轮询任务的调度计划，以�
 airflow scheduler -D
 ```
 
-###worker
+### worker
 
 worker是一个守护进程，它启动一个或多个celery任务队列，负责执行具体的DAG任务。
 
@@ -48,7 +48,7 @@ worker是一个守护进程，它启动一个或多个celery任务队列，负�
 airflow worker -D
 ```
 
-###flower
+### flower
 
 flower是一个守护进程，可用于通过web页面监控celery消息队列。
 
@@ -58,6 +58,6 @@ flower是一个守护进程，可用于通过web页面监控celery消息队列�
 airflow flower -D
 ```
 
-默认的端口为5555，可以在浏览器通过地址"http://localhost:5555"来访问flower，对celery消息队列进行监控。
+默认的端口为5555，可以在浏览器通过地址<http://localhost:5555>来访问flower，对celery消息队列进行监控。
 
 
