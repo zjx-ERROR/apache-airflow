@@ -82,6 +82,20 @@ airflow flower -D
 
 默认的端口为5555，可以在浏览器通过地址<http://localhost:5555>来访问flower，对celery消息队列进行监控。
 
+## 安装Airflow
+
+1. 安装：pip install apache-airflow  
+如果想安装额外的组件，例如mysql，可以pip install apache-airflow[mysql],可安装的组件列表见：<http://airflow.apache.org/installtion.html>
+2. 安装与配置LocalExecutor：
+   - 安装mysql operator：pip install airflow[mysql]
+   - 创建airflow元数据库（mysql），步骤：以root身份登录mysql->CREATE DATABASE airflow;->GRANT all privileges on airflow.* TO 'user'@'IP' INDENTIFIED BY 'password';->FLUSH PRIVILEGES;
+   - 修改airflow配置文件airflow.cfg(默认在~路径下面)，更改数据库链接：sql_alchemy_conn = mysql:*//user:password@ip/airflow
+   - 修改executor模式，同样修改airflow.cfg文件：*executor = LocalExecutor
+3. 初始化db:airflow initdb
+4. 启动web服务：airflow webserver -p 8080
+5. 启动调度服务：airflow scheduler
+
+
 ## Airflow的守护进程是如何一起工作的
 
 需要注意的是Airflow的守护进程彼此之间是独立的，他们并不相互依赖，也不相互感知。每个守护进程在运行时只处理分配到自己身上的任务，他们在一起运行时，提供了Airflow的全部功能。
@@ -232,3 +246,5 @@ airflow worker
 ```
 8. 使用负载均衡处理WebServer
 可以使用nginx，AWS等服务器处理WebServer的负载均衡。
+
+
