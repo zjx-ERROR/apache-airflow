@@ -164,8 +164,9 @@ Mysql做主从备份：<http://blog.csdn.net/u010353408/article/details/77964157
 ## airflow集群部署的具体步骤
 
 1. 在所有需要运行守护进程的机器上安装Apache Airflow。具体安装方法可参考<https://www.jianshu.com/p/9bed1e3ab93b>
-2. 修改{AIRFLOW_HOME}airflow.cfg文件，确保所有机器使用同一份配置文件。
+2. 修改{AIRFLOW_HOME}airflow.cfg文件，确保所有机器使用同一份配置文件
    - 修改Executor为CeleryExcetor  
+   
    ```bash
    executor = CelrryExecutor
    ```
@@ -174,10 +175,36 @@ Mysql做主从备份：<http://blog.csdn.net/u010353408/article/details/77964157
    sql_alchemy_conn = mysql://{USENAME}:{PASSWROD}@{MYSQL_HOST}:{MYSQL_PORT}/airflow
    ```
    - 设置中间人（Boker）  
-   如RabbitMQ:```bash
-   broker_url = amqp://guest:guest@{RABBITMQ_HOT}:{RABBITMQ_PORT}```  
-   如Redis：```bash
-   broker_url = redis://{REDIS_HOST}:{REDIS_PORT}/{REDSI_DB}```
+   如RabbitMQ:
+   ```bash
+   broker_url = amqp://guest:guest@{RABBITMQ_HOT}:{RABBITMQ_PORT}
+   ```  
+   如Redis：
+   ```bash
+   broker_url = redis://{REDIS_HOST}:{REDIS_PORT}/{REDSI_DB}
+   ```
    - 设定结果存储后端Backend
    ```bash
-   celery_result_backend = db+mysql://{USERNAME}:{PASSWORD}@{MYSQL_HOST}:{MYSQL_PORT}/airflow # 也可以redis:celery_result_backend = redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}```
+   celery_result_backend = db+mysql://{USERNAME}:{PASSWORD}@{MYSQL_HOST}:{MYSQL_PORT}/airflow # 也可以redis:celery_result_backend = redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}
+   ```
+3. 在master1和master2上部署工作流（DAGs）
+4. 在master1初始化airflow的元数据库
+```bash
+airflow initdb
+```
+5. 在master1启动相应的守护进程
+```bash
+airflow webserver
+
+airflow scheduler
+```
+6. 在master2中启动WebServer
+```bash
+airflow webserver
+```
+7. 在worker1和worker2中启动worker
+```bash
+airflow worker
+```
+8. 使用负载均衡处理webserver
+可以使用nginx，AWS等服务器处理WebServer的负载均衡。
