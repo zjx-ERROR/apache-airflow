@@ -195,7 +195,9 @@ airflow initdb
 5. 在master1启动相应的守护进程
 ```bash
 airflow webserver
+```
 
+```bash
 airflow scheduler
 ```
 6. 在master2中启动WebServer
