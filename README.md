@@ -22,7 +22,7 @@ workers = 4 # 表示开启4个gunicoen worker处理web请求
 ```
 
 启动webserver守护进程：
-```shell
+```bash
 airflow webserver -D
 ```
 
@@ -32,7 +32,7 @@ scheduler是一个守护进程，它周期性轮询任务的调度计划，以�
 
 启动scheduler守护进程：
 
-```shell
+```bash
 airflow scheduler -D
 ```
 
@@ -44,7 +44,7 @@ worker是一个守护进程，它启动一个或多个celery任务队列，负�
 
 启动worker守护进程，默认的队列名为default：
 
-```shell
+```bash
 airflow worker -D
 ```
 
@@ -54,7 +54,7 @@ flower是一个守护进程，可用于通过web页面监控celery消息队列�
 
 启动flower守护进程：
 
-```shell
+```bash
 airflow flower -D
 ```
 
@@ -64,11 +64,11 @@ airflow flower -D
 
 需要注意的是airflow的守护进程彼此之间是独立的，他们并不相互依赖，也不相互感知。每个守护进程在运行时只处理分配到自己身上的任务，他们在一起运行时，提供了airflow的全部功能。
 
-1.调度器scheduler会间隔性地轮询元数据库（Metastore）已注册的DAG是否需要被执行。如果一个具体的DAG根据其调度计划需要被执行，scheduler守护进程就会先在元数据库创建一个DagRun实例，并触发DAG内部的具体task，触发其实并不是真正的去执行，而是推送task消息至消息队列中（Broker）中，每一个task消息都包含task的DAG ID，task ID，及具体需要被执行的函数。如果task是要执行bash脚本，那么task消息还会包含bash脚本的代码。
+1. 调度器scheduler会间隔性地轮询元数据库（Metastore）已注册的DAG是否需要被执行。如果一个具体的DAG根据其调度计划需要被执行，scheduler守护进程就会先在元数据库创建一个DagRun实例，并触发DAG内部的具体task，触发其实并不是真正的去执行，而是推送task消息至消息队列中（Broker）中，每一个task消息都包含task的DAG ID，task ID，及具体需要被执行的函数。如果task是要执行bash脚本，那么task消息还会包含bash脚本的代码。
 
-2.用户可以在webserver上来控制DAG，比如手动触发一个DAG去执行。当用户这样做的时候，一个DagRun的实例将在元数据库被创建，scheduler去触发DAG中具体的task。
+2. 用户可以在webserver上来控制DAG，比如手动触发一个DAG去执行。当用户这样做的时候，一个DagRun的实例将在元数据库被创建，scheduler去触发DAG中具体的task。
 
-3.worker守护进程将会监听消息队列，如果有消息就从消息队列中取出消息，当取出任务消息时，它会更新元数据库中的DagRun实例的状态为正在运行，并尝试执行DAG中的task，如果DAG执行成功，则更新DagRun实例的状态为成功，否则更新状态为失败。
+3. worker守护进程将会监听消息队列，如果有消息就从消息队列中取出消息，当取出任务消息时，它会更新元数据库中的DagRun实例的状态为正在运行，并尝试执行DAG中的task，如果DAG执行成功，则更新DagRun实例的状态为成功，否则更新状态为失败。
 
 ## airflow单节点部署
 
@@ -109,43 +109,43 @@ airflow flower -D
 
 具体实现步骤如下：
 
-1.下载failover  
-```shell
+1. 下载failover  
+```bash
 git clone https://github.com/teamclairvoyant/airflow-scheduler-failover-controller
 ```
 
-2.运行pip安装  
-```shell
+2. 运行pip安装  
+```bash
 cd {AIRFLOW_FAILOVER_CONTROLLER_HOME}
 
 pip install -e .
 ```
 
-3.初始化failover
+3. 初始化failover
 
-```shell
+```bash
 scheduler_failover_controller init
 ```
 
 注：初始化时，会向airflow.cfg中追加内容，因此需要先安装airflow并初始化。
 
-4.更改failover配置
+4. 更改failover配置
 
-```shell
+```bash
 scheduler_nodes_in_cluster = host1,host2
 ```
 
 注：host name可以通过scheduler_failover_controller_get_current_host命令获得
 
-5.配置安装failover的机器之间的免密登陆，配置完成后，可以使用如下命令进程验证：
+5. 配置安装failover的机器之间的免密登陆，配置完成后，可以使用如下命令进程验证：
 
-```shell
+```bash
 scheduler_failover_controller test_connection
 ```
 
-6.启动failover
+6. 启动failover
 
-```shell
+```bash
 scheduler_failover_controller satrt
 ```
 
@@ -161,3 +161,23 @@ RabbitMQ集群部署及配置Mirrored模式：<http://blog.csdn.net/u010353408/a
 - 元数据库（Metestore）的高可用取决于所使用的数据库，如Mysql等。  
 Mysql做主从备份：<http://blog.csdn.net/u010353408/article/details/77964157>
 
+## airflow集群部署的具体步骤
+
+1. 在所有需要运行守护进程的机器上安装Apache Airflow。具体安装方法可参考<https://www.jianshu.com/p/9bed1e3ab93b>
+2. 修改{AIRFLOW_HOME}airflow.cfg文件，确保所有机器使用同一份配置文件。
+   - 修改Executor为CeleryExcetor  
+   ```bash
+   executor = CelrryExecutor
+   ```
+   - 指定元数据库（Metestore）  
+   ```bash
+   sql_alchemy_conn = mysql://{USENAME}:{PASSWROD}@{MYSQL_HOST}:{MYSQL_PORT}/airflow
+   ```
+   - 设置中间人（Boker）  
+   如RabbitMQ:```bash
+   broker_url = amqp://guest:guest@{RABBITMQ_HOT}:{RABBITMQ_PORT}```  
+   如Redis：```bash
+   broker_url = redis://{REDIS_HOST}:{REDIS_PORT}/{REDSI_DB}```
+   - 设定结果存储后端Backend
+   ```bash
+   celery_result_backend = db+mysql://{USERNAME}:{PASSWORD}@{MYSQL_HOST}:{MYSQL_PORT}/airflow # 也可以redis:celery_result_backend = redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}```
