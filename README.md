@@ -82,5 +82,82 @@ airflow flower -D
 
 ![airflow集群部署](img/12989993-d6181c7d30c4afd2.png "airflow集群部署")
 
+### 特点
 
+- 高可用  
+如果一个worker节点崩溃或离线时，集群仍可以被控制的，其他worker节点的任务仍会被执行。
+
+- 分布式  
+如果你的工作流中邮一些内存密集型的任务，任务最好是分布在多台机器上运行以便得到更快的执行。
+
+### 扩展worker节点
+
+- 水平拓展  
+可以通过向集群中添加更多worker节点来水平地扩展集群，并使这些新节点指向同一个元数据库，从而分发处理过程。由于worker不需要再任何进程注册即可执行任务，因此所有worker节点可以在不停机、不重启服务的情况下进行拓展，也就是说可以随时扩展。
+- 垂直拓展  
+可以通过增加单个worker节点的守护进程数来垂直扩展集群。可以通过修改airflow的配置文件：{AIRFLOW_HOME}/airflow.cfg中celeryd_concurrency的值来实现。
+
+### 扩展master节点
+
+向集群中添加更多master节点，以扩展主节点上运行的服务。可以扩展webserver守护进程，以防止太多的HTTP请求出现在一台机器上，或者为webserver的服务提供更高的可用性。需要注意的一点是，每次只能运行一个scheduler守护进程。如果有多个scheduler运行，那么就有可能一个任务被执行多次，这可能会导致工作流因重复运行而出现一些问题。
+
+![扩展master节点](img/12989993-492921d99dca1e56.png "扩展master节点")
+
+### 高可用scheduler
+
+可能会有这样一个问题，scheduler不能同时运行两个，那么运行scheduler的节点一旦出现问题，任务不就完全不能运行了吗？可以采取下面的解决方案，在两台机器上部署scheduler，只运行一台机器上的scheduler守护进程，一旦运行scheduler守护进程的机器出现故障，立刻启动另一台机器上的scheduler即可。借助第三方组件airflow-scheduler-failover-controller实现scheduler的高可用。
+
+具体实现步骤如下：
+
+1.下载failover  
+```shell
+git clone https://github.com/teamclairvoyant/airflow-scheduler-failover-controller
+```
+
+2.运行pip安装  
+```shell
+cd {AIRFLOW_FAILOVER_CONTROLLER_HOME}
+
+pip install -e .
+```
+
+3.初始化failover
+
+```shell
+scheduler_failover_controller init
+```
+
+注：初始化时，会向airflow.cfg中追加内容，因此需要先安装airflow并初始化。
+
+4.更改failover配置
+
+```shell
+scheduler_nodes_in_cluster = host1,host2
+```
+
+注：host name可以通过scheduler_failover_controller_get_current_host命令获得
+
+5.配置安装failover的机器之间的免密登陆，配置完成后，可以使用如下命令进程验证：
+
+```shell
+scheduler_failover_controller test_connection
+```
+
+6.启动failover
+
+```shell
+scheduler_failover_controller satrt
+```
+
+因此更健壮的架构图如下所示：
+
+![更健壮的airflow](img/12989993-b9a27eaf42924892.png "更健壮的airflow")
+
+### 队列服务及元数据库（Metestore）的高可用
+
+- 队列服务的高可用取决于使用的消息队列是否可以高可用部署，如RabbitMQ和Redis。  
+RabbitMQ集群部署及配置Mirrored模式：<http://blog.csdn.net/u010353408/article/details/77964190>
+
+- 元数据库（Metestore）的高可用取决于所使用的数据库，如Mysql等。  
+Mysql做主从备份：<http://blog.csdn.net/u010353408/article/details/77964157>
 
