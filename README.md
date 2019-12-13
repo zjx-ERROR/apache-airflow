@@ -1,6 +1,6 @@
 # Apache-Airflow
 
-## Airflow解决哪些问题
+## 1. Airflow解决哪些问题
 
 通常，在一个运维系统，数据分析系统，或测试系统等大型系统中，我们会有各种各样的依赖需求。包括但不限于：
 
@@ -22,12 +22,12 @@ Airflow中的工作流是具有方向性依赖的任务集合。
 DAG中的每个节点都是一个任务，DAG中的边表示的是任务之间的依赖（强制为有向无环，因此不会出现循环依赖，从而导致无限执行循环）。
 
 
-## Airflow的守护进程
+## 2. Airflow的守护进程
 
 Airflow系统在运行时有许多守护进程，它们提供了Airflow的全部功能。守护进程包括WEB服务器：WebServer、调度程序：scheduler、执行单元：worker、消息队列监控工具：Flower等。
 
 
-### WebServer
+### 1. WebServer
 
 WebServer是一个守护进程，它接受HTTP请求、允许通过其它WEB应用程序与Airflow进行交互，WebServer提供以下功能：
 
@@ -48,7 +48,7 @@ workers = 4 # 表示开启4个gunicoen worker处理web请求
 airflow webserver -D
 ```
 
-### scheduler
+### 2. scheduler
 
 scheduler是一个守护进程，它周期性轮询任务的调度计划，以确定是否触发任务执行。
 
@@ -58,7 +58,7 @@ scheduler是一个守护进程，它周期性轮询任务的调度计划，以�
 airflow scheduler -D
 ```
 
-### worker
+### 3. worker
 
 worker是一个守护进程，它启动一个或多个celery任务队列，负责执行具体的DAG任务。
 
@@ -70,7 +70,7 @@ worker是一个守护进程，它启动一个或多个celery任务队列，负�
 airflow worker -D
 ```
 
-### flower
+### 4. flower
 
 flower是一个守护进程，可用于通过web页面监控celery消息队列。
 
@@ -82,21 +82,24 @@ airflow flower -D
 
 默认的端口为5555，可以在浏览器通过地址<http://localhost:5555>来访问flower，对celery消息队列进行监控。
 
-## 安装Airflow
+## 3. 安装Airflow
 
 1. 安装：pip install apache-airflow  
 如果想安装额外的组件，例如mysql，可以pip install apache-airflow[mysql],可安装的组件列表见：<http://airflow.apache.org/installtion.html>
 2. 安装与配置LocalExecutor：
    - 安装mysql operator：pip install airflow[mysql]
-   - 创建airflow元数据库（mysql），步骤：以root身份登录mysql->CREATE DATABASE airflow;->GRANT all privileges on airflow.* TO 'user'@'IP' INDENTIFIED BY 'password';->FLUSH PRIVILEGES;
    - 修改airflow配置文件airflow.cfg(默认在~路径下面)，更改数据库链接：sql_alchemy_conn = mysql:*//user:password@ip/airflow
    - 修改executor模式，同样修改airflow.cfg文件：*executor = LocalExecutor
 3. 初始化db:airflow initdb
 4. 启动web服务：airflow webserver -p 8080
 5. 启动调度服务：airflow scheduler
 
+## 4. 安装问题解决
 
-## Airflow的守护进程是如何一起工作的
+- sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, "Can't connect to MySQL server on 'localhost' ([Errno -3] Temporary failure in name resolution)")  
+解决：将mysql数据库的连接字符串localhost改为127.0.0.1
+
+## 5. Airflow的守护进程是如何一起工作的
 
 需要注意的是Airflow的守护进程彼此之间是独立的，他们并不相互依赖，也不相互感知。每个守护进程在运行时只处理分配到自己身上的任务，他们在一起运行时，提供了Airflow的全部功能。
 
@@ -106,19 +109,19 @@ airflow flower -D
 
 3. worker守护进程将会监听消息队列，如果有消息就从消息队列中取出消息，当取出任务消息时，它会更新元数据库中的DagRun实例的状态为正在运行，并尝试执行DAG中的task，如果DAG执行成功，则更新DagRun实例的状态为成功，否则更新状态为失败。
 
-## Airflow单节点部署
+## 6. Airflow单节点部署
 
 将以上所有守护进程运行在同一台机器上即可完成Airflow的单节点部署，架构如下图所示
 
 ![Airflow单节点部署](img/12989993-e0058864f780292f.png "Airflow单节点部署")
 
-## Airflow多节点（集群）部署
+## 7. Airflow多节点（集群）部署
 
 在稳定性要求较高的场景，如金融交易系统中，一般采用集群、高可用的方式来部署。Apache Airflow同样支持集群、高可用部署，Airflow的守护进程可分布在多台机器上运行，架构如下图所示：
 
 ![Airflow集群部署](img/12989993-d6181c7d30c4afd2.png "Airflow集群部署")
 
-### 特点
+### 1. 特点
 
 - 高可用  
 如果一个worker节点崩溃或离线时，集群仍可以被控制的，其他worker节点的任务仍会被执行。
@@ -126,20 +129,20 @@ airflow flower -D
 - 分布式  
 如果你的工作流中邮一些内存密集型的任务，任务最好是分布在多台机器上运行以便得到更快的执行。
 
-### 扩展worker节点
+### 2. 扩展worker节点
 
 - 水平拓展  
 可以通过向集群中添加更多worker节点来水平地扩展集群，并使这些新节点指向同一个元数据库，从而分发处理过程。由于worker不需要再任何进程注册即可执行任务，因此所有worker节点可以在不停机、不重启服务的情况下进行拓展，也就是说可以随时扩展。
 - 垂直拓展  
 可以通过增加单个worker节点的守护进程数来垂直扩展集群。可以通过修改Airflow的配置文件：{AIRFLOW_HOME}/airflow.cfg中celeryd_concurrency的值来实现。
 
-### 扩展master节点
+### 3. 扩展master节点
 
 向集群中添加更多master节点，以扩展主节点上运行的服务。可以扩展WebServer守护进程，以防止太多的HTTP请求出现在一台机器上，或者为WebServer的服务提供更高的可用性。需要注意的一点是，每次只能运行一个scheduler守护进程。如果有多个scheduler运行，那么就有可能一个任务被执行多次，这可能会导致工作流因重复运行而出现一些问题。
 
 ![扩展master节点](img/12989993-492921d99dca1e56.png "扩展master节点")
 
-### 高可用scheduler
+### 4. 高可用scheduler
 
 可能会有这样一个问题，scheduler不能同时运行两个，那么运行scheduler的节点一旦出现问题，任务不就完全不能运行了吗？可以采取下面的解决方案，在两台机器上部署scheduler，只运行一台机器上的scheduler守护进程，一旦运行scheduler守护进程的机器出现故障，立刻启动另一台机器上的scheduler即可。借助第三方组件airflow-scheduler-failover-controller实现scheduler的高可用。
 
@@ -189,7 +192,7 @@ scheduler_failover_controller satrt
 
 ![更健壮的Airflow](img/12989993-b9a27eaf42924892.png "更健壮的Airflow")
 
-### 队列服务及元数据库（Metestore）的高可用
+### 5. 队列服务及元数据库（Metestore）的高可用
 
 - 队列服务的高可用取决于使用的消息队列是否可以高可用部署，如RabbitMQ和Redis。  
 RabbitMQ集群部署及配置Mirrored模式：<http://blog.csdn.net/u010353408/article/details/77964190>
@@ -197,14 +200,14 @@ RabbitMQ集群部署及配置Mirrored模式：<http://blog.csdn.net/u010353408/a
 - 元数据库（Metestore）的高可用取决于所使用的数据库，如Mysql等。  
 Mysql做主从备份：<http://blog.csdn.net/u010353408/article/details/77964157>
 
-## Airflow集群部署的具体步骤
+## 8. Airflow集群部署的具体步骤
 
 1. 在所有需要运行守护进程的机器上安装Apache Airflow。具体安装方法可参考<https://www.jianshu.com/p/9bed1e3ab93b>
 2. 修改{AIRFLOW_HOME}airflow.cfg文件，确保所有机器使用同一份配置文件
    - 修改Executor为CeleryExcetor  
    
    ```bash
-   executor = CelrryExecutor
+   executor = CeleryExecutor
    ```
    - 指定元数据库（Metestore）  
    ```bash
