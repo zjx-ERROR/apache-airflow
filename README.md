@@ -99,6 +99,12 @@ airflow flower -D
 - sqlalchemy.exc.OperationalError: (pymysql.err.OperationalError) (2003, "Can't connect to MySQL server on 'localhost' ([Errno -3] Temporary failure in name resolution)")  
 解决：将mysql数据库的连接字符串localhost改为127.0.0.1
 
+- cryptography.fernet.InvalidToken  
+解决：删除Airflow初始化数据库，重新执行:
+```bash
+airflow initdb
+```
+
 ## 5. Airflow的守护进程是如何一起工作的
 
 需要注意的是Airflow的守护进程彼此之间是独立的，他们并不相互依赖，也不相互感知。每个守护进程在运行时只处理分配到自己身上的任务，他们在一起运行时，提供了Airflow的全部功能。
